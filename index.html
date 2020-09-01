@@ -1,0 +1,185 @@
+<html>
+<head>
+<title>YNA Todo App</title>
+
+<script crossorigin src="https://unpkg.com/react@16/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+<script crossorigin src="https://unpkg.com/babel-standalone@6.26.0/babel.js"></script>
+
+<script type="text/babel">
+
+let fromServer = {
+    "items": [
+        {
+            "id": 1,
+            "title": "Milk",
+            "done": true,
+            "quantity": "",
+            "price": "",
+            "description": "A fine description of milk",
+        },
+        {
+            "id": 2,
+            "title": "Bread",
+            "done": false,
+            "quantity": "",
+            "price": "",
+            "description": "A fine description of bread",
+        },
+        {
+            "id": 3,
+            "title": "Cheerios",
+            "done": false,
+            "quantity": "2",
+            "price": "15",
+            "description": "A fine description of Cheerios",
+        }
+    ]
+}
+
+
+
+var items = fromServer.items;
+
+
+
+interface TodoItemInterface {
+    id: number,
+    title: string,
+    // How to state nullable?
+    done: bool,
+    quantity: number,
+    price: number,
+    description: string
+}
+
+
+
+class TodoItem extends React.Component {
+    // Where does one enumerate the fields expected, as if function parameters?
+    // In Javascript terms, I think I mean to ask: Where does one say that the props must meet the TodoItemInterface?
+
+    constructor(props) {
+        super(props);
+        this.handleClickedTitle = this.handleClickedTitle.bind(this);
+    }
+
+    render() {
+        return (
+            <span data-id={this.props.id} data-title={this.props.title} data-done={this.props.done} data-quantity={this.props.quantity} data-price={this.props.price} data-description={this.props.description} onClick={this.handleClickedTitle}>{this.props.title}</span>
+        );
+    }
+
+    handleClickedTitle(e) {
+        e.preventDefault();
+        this.displayDetails();
+        this.editTitle();
+    }
+
+    displayDetails() {
+        let details = <TodoDetails title={this.props.title} quantity={this.props.quantity} price={this.props.price} description={this.props.description} />;
+        ReactDOM.render(details, document.getElementById("details"))
+    }
+
+    editTitle() {
+        alert("Edit title");
+    }
+
+}
+
+
+
+class TodoItemAdd extends TodoItem {
+
+    constructor(props) {
+        super(props);
+        this.addItem = this.addItem.bind(this);
+    }
+
+    render() {
+        return <span onClick={this.addItem}>Add Item</span>
+    }
+
+    addItem(e) {
+        e.preventDefault();
+
+        let item = {
+            "title": "Beer",
+            "done": false,
+            "quantity": null,
+            "price": null,
+            "description": null,
+        };
+        this.props.addItemCallback(item);
+    }
+
+}
+
+
+
+class TodoList extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {items:props.items};
+        this.addItem = this.addItem.bind(this);
+    }
+
+    render() {
+        let items_rend = this.state.items.map( item => <li key={item.id}><TodoItem title={item.title} id={item.id} done={item.done} quantity={item.quantity} price={item.price} description={item.description} /></li> );
+        items_rend.push(<li key="add"><TodoItemAdd addItemCallback={this.addItem} /></li>);
+        return (
+            <div>
+                <h2>Add your items here</h2>
+                <ul>{items_rend}</ul>
+            </div>
+        );
+    }
+
+    addItem(item) {
+        item.id = this.getNextItemId();
+        let items = this.state.items;
+        items.push(item);
+        this.setState({items:items});
+    }
+
+    getNextItemId() {
+        let ids = this.state.items.map(x => x.id);
+        return Math.max.apply(this, ids)+1;
+    }
+}
+
+
+
+class TodoDetails extends React.Component {
+
+    constructor(props) {
+        super(props);
+    }
+
+    render() {
+        return (
+            <div>
+                <h2>{this.props.title} Details</h2>
+                <p>Quantity: {this.props.quantity}<br />
+                Price: {this.props.price}<br />
+                Description: {this.props.description}</p>
+            </div>
+        );
+    }
+
+}
+
+
+
+let list = <TodoList items={items} />;
+ReactDOM.render(list, document.getElementById("list"))
+</script>
+
+</head>
+<body>
+    <h1>Shopping List</h1>
+    <div id="list"></div>
+    <div id="details"></div>
+</body>
+</html>
